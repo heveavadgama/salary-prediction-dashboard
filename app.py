@@ -24,10 +24,10 @@ with st.sidebar:
     st.header("📊 About this App")
     st.markdown("""
     This app uses a machine learning model trained on HR data to estimate **monthly salary**.
-    
+    - Dataset is based on US jobs and thats why predicted in dollars.
     - Input features like age, job role, education, etc.
     - Works best with accurate data.
-    - Built with 💖 using Streamlit.
+    
     """)
 
 # Form layout
