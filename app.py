@@ -129,7 +129,7 @@ if submitted:
     }])
 
     # Label Encoding to Education
-    education_le = joblib.load("encoders/label_encoder_education.pkl")
+    education_le = joblib.load("label_encoder_education.pkl")
     input_data['Education'] = education_le.transform(input_data['Education'])
 
     # One-Hot Encoding 
