@@ -11,153 +11,130 @@ import streamlit as st
 import pandas as pd
 import joblib
 
-# Load trained model
+# Load model and encoders
 model = joblib.load("tuned_gradient_boosting_model.pkl")
+education_le = joblib.load("label_encoder_education.pkl")
+model_features = joblib.load("model_features.pkl")
 
-# Page setup
+# Page config
 st.set_page_config(page_title="💼 HR Salary Predictor", layout="wide")
 st.title("💼 HR Salary Prediction Dashboard")
-st.markdown("Use this interactive form to predict an employee's **monthly salary** based on various HR attributes.")
+st.markdown("This app predicts **monthly salary** (USD & INR) for HR professionals based on various features.")
 
-# Sidebar for general info
+# Sidebar
 with st.sidebar:
-    st.header("📊 About this App")
+    st.header("📘 About")
     st.markdown("""
-    This app uses a machine learning model trained on HR data to estimate **monthly salary**.
-    - Dataset is based on US jobs and thats why predicted in dollars.
-    - Input features like age, job role, education, etc.
-    - Works best with accurate data.
-    
+    - 🔍 Predicts **monthly income** using a trained ML model
+    - 📚 Dataset based on real HR records (US-based)
+    - 📌 Enter accurate details for better results
     """)
 
-# Form layout
+# Form
 with st.form("salary_form"):
-    st.subheader("🧑‍💼 Employee Information")
+    st.subheader("🧑‍💼 Employee Profile")
 
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        age = st.slider("Age", 18, 60, 30)
-        gender = st.selectbox("Gender", ["Male", "Female"])
-        education = st.selectbox("Education Level 🎓", [1, 2, 3, 4, 5])
-        education_field = st.selectbox("Education Field", ["Life Sciences", "Other", "Medical", "Marketing", "Technical Degree", "Human Resources"])
-        department = st.selectbox("Department", ["Sales", "Research & Development", "Human Resources"])
-        business_travel = st.selectbox("Business Travel ✈️", ["Travel_Rarely", "Travel_Frequently", "Non-Travel"])
-        marital_status = st.selectbox("Marital Status", ["Single", "Married", "Divorced"])
+    with st.expander("🎓 Basic Information", expanded=True):
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            age = st.slider("Age", 18, 60, 30)
+            gender = st.selectbox("Gender", ["Male", "Female"])
+            education = st.selectbox("Education Level (1-Low, 5-High)", [1, 2, 3, 4, 5])
+        with col2:
+            education_field = st.selectbox("Field of Study", ["Life Sciences", "Other", "Medical", "Marketing", "Technical Degree", "Human Resources"])
+            department = st.selectbox("Department", ["Sales", "Research & Development", "Human Resources"])
+            business_travel = st.selectbox("Travel Frequency", ["Travel_Rarely", "Travel_Frequently", "Non-Travel"])
+        with col3:
+            marital_status = st.selectbox("Marital Status", ["Single", "Married", "Divorced"])
+            job_level = st.selectbox("Job Level", [1, 2, 3, 4, 5])
+            job_role = st.selectbox("Job Role", [
+                "Sales Executive", "Research Scientist", "Laboratory Technician",
+                "Manufacturing Director", "Healthcare Representative", "Manager",
+                "Sales Representative", "Research Director", "Human Resources"
+            ])
 
-    with col2:
-        daily_rate = st.number_input("Daily Rate ($)", 100, 1500, value=500)
-        hourly_rate = st.number_input("Hourly Rate ($)", 30, 100, value=60)
-        monthly_rate = st.number_input("Monthly Rate ($)", 1000, 20000, value=10000)
-        distance = st.slider("Distance From Home (mi)", 1, 30, 5)
-        job_level = st.selectbox("Job Level", [1, 2, 3, 4, 5])
-        job_role = st.selectbox("Job Role", [
-            "Sales Executive", "Research Scientist", "Laboratory Technician",
-            "Manufacturing Director", "Healthcare Representative", "Manager",
-            "Sales Representative", "Research Director", "Human Resources"
-        ])
-        overtime = st.selectbox("OverTime", ["Yes", "No"])
+    with st.expander("💰 Financial & Work Details", expanded=False):
+        col4, col5, col6 = st.columns(3)
+        with col4:
+            daily_rate = st.number_input("Daily Rate ($)", 100, 1500, value=500)
+            hourly_rate = st.number_input("Hourly Rate ($)", 30, 100, value=60)
+        with col5:
+            monthly_rate = st.number_input("Monthly Rate ($)", 1000, 20000, value=10000)
+            stock_option = st.selectbox("Stock Option Level", [0, 1, 2, 3])
+            overtime = st.selectbox("OverTime", ["Yes", "No"])
+        with col6:
+            distance = st.slider("Distance From Home (mi)", 1, 30, 5)
+            salary_hike = st.slider("Salary Hike (%)", 10, 25, 15)
+            performance = st.selectbox("Performance Rating", [1, 2, 3, 4])
 
-    with col3:
-        performance = st.selectbox("Performance Rating", [1, 2, 3, 4])
-        salary_hike = st.slider("Percent Salary Hike (%)", 10, 25, value=15)
-        stock_option = st.selectbox("Stock Option Level", [0, 1, 2, 3])
-        num_companies = st.number_input("Companies Worked", 0, 10, value=2)
-        total_years = st.number_input("Total Working Years", 0, 40, value=10)
-        trainings = st.number_input("Trainings Last Year", 0, 10, value=2)
+    with st.expander("📊 Experience Metrics", expanded=False):
+        col7, col8, col9 = st.columns(3)
+        with col7:
+            total_years = st.number_input("Total Working Years", 0, 40, 10)
+            num_companies = st.number_input("Companies Worked", 0, 10, 2)
+        with col8:
+            years_company = st.number_input("Years at Company", 0, 30, 5)
+            years_role = st.number_input("Years in Current Role", 0, 20, 4)
+        with col9:
+            years_promo = st.number_input("Years Since Last Promotion", 0, 15, 2)
+            years_manager = st.number_input("Years With Current Manager", 0, 20, 3)
 
-    # Satisfaction & Engagement
-    st.subheader("🧠 Satisfaction & Engagement")
-    col4, col5, col6 = st.columns(3)
-    with col4:
-        env_satisfaction = st.selectbox("Environment Satisfaction", [1, 2, 3, 4])
-        job_satisfaction = st.selectbox("Job Satisfaction", [1, 2, 3, 4])
+    with st.expander("😊 Satisfaction & Engagement", expanded=False):
+        col10, col11, col12 = st.columns(3)
+        with col10:
+            env_satisfaction = st.selectbox("Environment Satisfaction", [1, 2, 3, 4])
+        with col11:
+            job_satisfaction = st.selectbox("Job Satisfaction", [1, 2, 3, 4])
+        with col12:
+            rel_satisfaction = st.selectbox("Relationship Satisfaction", [1, 2, 3, 4])
 
-    with col5:
-        rel_satisfaction = st.selectbox("Relationship Satisfaction", [1, 2, 3, 4])
-        worklife = st.selectbox("Work-Life Balance", [1, 2, 3, 4])
+        col13, col14 = st.columns(2)
+        with col13:
+            worklife = st.selectbox("Work-Life Balance", [1, 2, 3, 4])
+        with col14:
+            job_involvement = st.selectbox("Job Involvement", [1, 2, 3, 4])
 
-    with col6:
-        job_involvement = st.selectbox("Job Involvement", [1, 2, 3, 4])
+    trainings = st.number_input("Trainings Attended Last Year", 0, 10, value=2)
 
-    # Experience
-    st.subheader("📈 Experience Metrics")
-    col7, col8, col9 = st.columns(3)
-    with col7:
-        years_company = st.number_input("Years at Company", 0, 30, value=5)
+    submitted = st.form_submit_button("📈 Predict Salary")
 
-    with col8:
-        years_role = st.number_input("Years in Current Role", 0, 20, value=4)
-
-    with col9:
-        years_promo = st.number_input("Years Since Last Promotion", 0, 15, value=2)
-        years_manager = st.number_input("Years With Current Manager", 0, 20, value=3)
-
-    # Submit button
-    submitted = st.form_submit_button("📊 Predict Salary")
-
+# Prediction logic
 if submitted:
+    # DataFrame from input
     input_data = pd.DataFrame([{
-        "Age": age,
-        "BusinessTravel": business_travel,
-        "DailyRate": daily_rate,
-        "Department": department,
-        "DistanceFromHome": distance,
-        "Education": education,
-        "EducationField": education_field,
-        "EnvironmentSatisfaction": env_satisfaction,
-        "Gender": gender,
-        "HourlyRate": hourly_rate,
-        "JobInvolvement": job_involvement,
-        "JobLevel": job_level,
-        "JobRole": job_role,
-        "JobSatisfaction": job_satisfaction,
-        "MaritalStatus": marital_status,
-        "MonthlyRate": monthly_rate,
-        "NumCompaniesWorked": num_companies,
-        "OverTime": overtime,
-        "PercentSalaryHike": salary_hike,
-        "PerformanceRating": performance,
-        "RelationshipSatisfaction": rel_satisfaction,
-        "StockOptionLevel": stock_option,
-        "TotalWorkingYears": total_years,
-        "TrainingTimesLastYear": trainings,
-        "WorkLifeBalance": worklife,
-        "YearsAtCompany": years_company,
-        "YearsInCurrentRole": years_role,
-        "YearsSinceLastPromotion": years_promo,
+        "Age": age, "BusinessTravel": business_travel, "DailyRate": daily_rate,
+        "Department": department, "DistanceFromHome": distance, "Education": education,
+        "EducationField": education_field, "EnvironmentSatisfaction": env_satisfaction,
+        "Gender": gender, "HourlyRate": hourly_rate, "JobInvolvement": job_involvement,
+        "JobLevel": job_level, "JobRole": job_role, "JobSatisfaction": job_satisfaction,
+        "MaritalStatus": marital_status, "MonthlyRate": monthly_rate,
+        "NumCompaniesWorked": num_companies, "OverTime": overtime,
+        "PercentSalaryHike": salary_hike, "PerformanceRating": performance,
+        "RelationshipSatisfaction": rel_satisfaction, "StockOptionLevel": stock_option,
+        "TotalWorkingYears": total_years, "TrainingTimesLastYear": trainings,
+        "WorkLifeBalance": worklife, "YearsAtCompany": years_company,
+        "YearsInCurrentRole": years_role, "YearsSinceLastPromotion": years_promo,
         "YearsWithCurrManager": years_manager
     }])
-    input_data = input_data.drop(columns=['MonthlyIncome'], errors='ignore')
-    
-    # Label Encoding to Education
-    education_le = joblib.load("label_encoder_education.pkl")
+
+    # Encode
     input_data['Education'] = education_le.transform(input_data['Education'])
 
-    # One-Hot Encoding 
     categorical_cols = ['JobRole', 'MaritalStatus', 'OverTime', 'WorkLifeBalance', 'Department', 'Gender']
-    input_data_encoded = pd.get_dummies(input_data, columns=categorical_cols, drop_first=True)
+    input_encoded = pd.get_dummies(input_data, columns=categorical_cols, drop_first=True)
 
-    # Align columns with model training 
-    model_features = joblib.load("model_features.pkl")
-
-    # Add missing columns (due to drop_first or categories not in current input)
     for col in model_features:
-        if col not in input_data_encoded:
-            input_data_encoded[col] = 0
-
-    # Ensure correct column order
-    input_data_encoded = input_data_encoded[model_features]
+        if col not in input_encoded:
+            input_encoded[col] = 0
+    input_encoded = input_encoded[model_features]
 
     # Predict
-    prediction = model.predict(input_data_encoded)[0]
-    # Convert to INR (update the rate if needed)
-    usd_to_inr = 83.5
-    prediction_inr = prediction * usd_to_inr
-    
-    # Show results
-    st.markdown("---")
-    st.success("✅ Prediction Complete!")
-    st.metric(label="💰 Estimated Monthly Salary (USD)", value=f"${prediction:,.2f}")
-    st.metric(label="💵 Estimated Monthly Salary (INR)", value=f"₹{prediction_inr:,.2f}")
+    prediction = model.predict(input_encoded)[0]
+    prediction_inr = prediction * 83.5
 
-
+    # Display
+    st.markdown("## 📉 Prediction Results")
+    col_usd, col_inr = st.columns(2)
+    col_usd.metric("💵 Monthly Salary (USD)", f"${prediction:,.2f}")
+    col_inr.metric("🇮🇳 Monthly Salary (INR)", f"₹{prediction_inr:,.2f}")
+    st.balloons()
