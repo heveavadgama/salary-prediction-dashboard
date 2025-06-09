@@ -24,9 +24,10 @@ with st.sidebar:
     st.header("📊 About this App")
     st.markdown("""
     This app uses a machine learning model trained on HR data to estimate **monthly salary**.
-
+    
     - Input features like age, job role, education, etc.
     - Works best with accurate data.
+    - Built with 💖 using Streamlit.
     """)
 
 # Form layout
@@ -94,7 +95,6 @@ with st.form("salary_form"):
     # Submit button
     submitted = st.form_submit_button("📊 Predict Salary")
 
-# Prediction
 if submitted:
     input_data = pd.DataFrame([{
         "Age": age,
@@ -128,9 +128,27 @@ if submitted:
         "YearsWithCurrManager": years_manager
     }])
 
+    # Label Encoding to Education
+    education_le = joblib.load("encoders/label_encoder_education.pkl")
+    input_data['Education'] = education_le.transform(input_data['Education'])
+
+    # One-Hot Encoding 
+    categorical_cols = ['JobRole', 'MaritalStatus', 'OverTime', 'WorkLifeBalance', 'Department', 'Gender']
+    input_data_encoded = pd.get_dummies(input_data, columns=categorical_cols, drop_first=True)
+
+    # Align columns with model training 
+    model_features = joblib.load("model_features.pkl")
+
+    # Add missing columns (due to drop_first or categories not in current input)
+    for col in model_features:
+        if col not in input_data_encoded:
+            input_data_encoded[col] = 0
+
+    # Ensure correct column order
+    input_data_encoded = input_data_encoded[model_features]
+
     # Predict
-    prediction = model.predict(input_data)[0]
+    prediction = model.predict(input_data_encoded)[0]
     st.markdown("---")
     st.success("✅ Prediction Complete!")
     st.metric(label="💰 Estimated Monthly Salary", value=f"${prediction:,.2f}")
-
