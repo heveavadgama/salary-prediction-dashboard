@@ -127,7 +127,8 @@ if submitted:
         "YearsSinceLastPromotion": years_promo,
         "YearsWithCurrManager": years_manager
     }])
-
+    input_data = input_data.drop(columns=['MonthlyIncome'], errors='ignore')
+    
     # Label Encoding to Education
     education_le = joblib.load("label_encoder_education.pkl")
     input_data['Education'] = education_le.transform(input_data['Education'])
