@@ -153,3 +153,5 @@ if submitted:
     st.markdown("---")
     st.success("✅ Prediction Complete!")
     st.metric(label="💰 Estimated Monthly Salary", value=f"${prediction:,.2f}")
+    st.metric(label="💵 Estimated Monthly Salary (INR)", value=f"₹{prediction_inr:,.2f}")
+
