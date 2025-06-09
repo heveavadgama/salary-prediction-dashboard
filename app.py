@@ -27,7 +27,6 @@ with st.sidebar:
 
     - Input features like age, job role, education, etc.
     - Works best with accurate data.
-    - Built with 💖 using Streamlit.
     """)
 
 # Form layout
