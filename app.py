@@ -149,9 +149,14 @@ if submitted:
     input_data_encoded = input_data_encoded[model_features]
 
     # Predict
-    prediction = model.predict(input_data_encoded)[0]
+    # Convert to INR (update the rate if needed)
+    usd_to_inr = 83.5
+    prediction_inr = prediction * usd_to_inr
+    
+    # Show results
     st.markdown("---")
     st.success("✅ Prediction Complete!")
-    st.metric(label="💰 Estimated Monthly Salary", value=f"${prediction:,.2f}")
+    st.metric(label="💰 Estimated Monthly Salary (USD)", value=f"${prediction:,.2f}")
     st.metric(label="💵 Estimated Monthly Salary (INR)", value=f"₹{prediction_inr:,.2f}")
+
 
