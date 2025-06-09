@@ -149,6 +149,7 @@ if submitted:
     input_data_encoded = input_data_encoded[model_features]
 
     # Predict
+    prediction = model.predict(input_data_encoded)[0]
     # Convert to INR (update the rate if needed)
     usd_to_inr = 83.5
     prediction_inr = prediction * usd_to_inr
